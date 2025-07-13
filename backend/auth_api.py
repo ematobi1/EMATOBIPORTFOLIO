@@ -80,7 +80,7 @@ async def update_user(
         
         user_dict = user_data.copy()
         user_dict.pop("password_hash", None)
-        return User(**user_dict)
+        return UserResponse(**user_dict)
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error updating user: {str(e)}")
