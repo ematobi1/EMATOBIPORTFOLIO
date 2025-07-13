@@ -51,7 +51,7 @@ async def get_users(current_user: User = Depends(get_admin_user)):
         for user_data in users_data:
             user_dict = user_data.copy()
             user_dict.pop("password_hash", None)  # Remove password hash
-            users.append(User(**user_dict))
+            users.append(UserResponse(**user_dict))
         return users
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error fetching users: {str(e)}")
