@@ -400,16 +400,13 @@ async def track_visit(
         if not setting or setting.get("value") != "true":
             return {"message": "Analytics tracking disabled"}
         
-        # Get client info
-        user_agent = request.headers.get("user-agent")
-        ip_address = request.client.host
+        # Get client info and update the data
+        analytics_dict = analytics_data.dict()
+        analytics_dict["user_agent"] = request.headers.get("user-agent")
+        analytics_dict["ip_address"] = request.client.host
         
         # Create analytics entry
-        analytics = VisitorAnalytics(
-            **analytics_data.dict(),
-            user_agent=user_agent,
-            ip_address=ip_address
-        )
+        analytics = VisitorAnalytics(**analytics_dict)
         
         await analytics_collection.insert_one(analytics.dict())
         return {"message": "Visit tracked successfully"}
