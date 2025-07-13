@@ -6,7 +6,7 @@ from database import users_collection
 
 router = APIRouter(prefix="/api/auth", tags=["authentication"])
 
-@router.post("/register", response_model=User)
+@router.post("/register", response_model=UserResponse)
 async def register(user_data: UserCreate):
     """Register new user"""
     try:
@@ -14,7 +14,7 @@ async def register(user_data: UserCreate):
         # Remove password hash from response
         user_dict = user.dict()
         user_dict.pop("password_hash", None)
-        return User(**user_dict)
+        return UserResponse(**user_dict)
     except HTTPException:
         raise
     except Exception as e:
@@ -31,14 +31,14 @@ async def login(login_data: UserLogin):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error logging in: {str(e)}")
 
-@router.get("/me", response_model=User)
+@router.get("/me", response_model=UserResponse)
 async def get_current_user_info(current_user: User = Depends(get_current_user)):
     """Get current user information"""
     try:
         # Remove password hash from response
         user_dict = current_user.dict()
         user_dict.pop("password_hash", None)
-        return User(**user_dict)
+        return UserResponse(**user_dict)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error getting user info: {str(e)}")
 
