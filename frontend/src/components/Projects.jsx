@@ -3,6 +3,7 @@ import { Card, CardContent } from './ui/card';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
 import { portfolioData } from '../mock/portfolioData';
+import { analyticsHelper } from '../services/api';
 
 const Projects = () => {
   const [filter, setFilter] = useState('all');
@@ -13,16 +14,41 @@ const Projects = () => {
   
   const displayProjects = filter === 'featured' ? featuredProjects : allProjects;
 
-  const handleViewProject = (project) => {
-    console.log('Opening project:', project.title);
-    // Mock navigation - in real app would open modal or navigate
-    alert(`Opening ${project.title} - Demo: ${project.demo}`);
+  const handleViewProject = async (project) => {
+    try {
+      // Track demo click
+      await analyticsHelper.trackProjectInteraction(project.id.toString(), 'demo_click');
+      
+      // For now, show alert (would normally open demo)
+      alert(`Opening ${project.title} - Demo: ${project.demo}`);
+    } catch (error) {
+      console.error('Error tracking project view:', error);
+      alert(`Opening ${project.title} - Demo: ${project.demo}`);
+    }
   };
 
-  const handleViewCode = (project) => {
-    console.log('Opening GitHub:', project.github);
-    // Mock GitHub opening
-    alert(`Opening GitHub repository for ${project.title}`);
+  const handleViewCode = async (project) => {
+    try {
+      // Track GitHub click
+      await analyticsHelper.trackProjectInteraction(project.id.toString(), 'github_click');
+      
+      // For now, show alert (would normally open GitHub)
+      alert(`Opening GitHub repository for ${project.title}`);
+    } catch (error) {
+      console.error('Error tracking GitHub click:', error);
+      alert(`Opening GitHub repository for ${project.title}`);
+    }
+  };
+
+  const handleProjectHover = async (project) => {
+    setHoveredProject(project.id);
+    
+    try {
+      // Track project view
+      await analyticsHelper.trackProjectInteraction(project.id.toString(), 'view');
+    } catch (error) {
+      console.error('Error tracking project hover:', error);
+    }
   };
 
   return (
@@ -73,7 +99,7 @@ const Projects = () => {
             <Card 
               key={project.id}
               className="bg-gray-800/50 border-gray-700 backdrop-blur-sm overflow-hidden group hover:bg-gray-700/50 transition-all duration-300 transform hover:scale-105"
-              onMouseEnter={() => setHoveredProject(project.id)}
+              onMouseEnter={() => handleProjectHover(project)}
               onMouseLeave={() => setHoveredProject(null)}
             >
               {/* Project Image */}
