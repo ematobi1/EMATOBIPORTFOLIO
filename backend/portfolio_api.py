@@ -426,16 +426,13 @@ async def track_project_view(
         if not setting or setting.get("value") != "true":
             return {"message": "Analytics tracking disabled"}
         
-        # Get client info
-        user_agent = request.headers.get("user-agent")
-        ip_address = request.client.host
+        # Get client info and update the data
+        view_dict = view_data.dict()
+        view_dict["user_agent"] = request.headers.get("user-agent")
+        view_dict["ip_address"] = request.client.host
         
         # Create project view entry
-        project_view = ProjectView(
-            **view_data.dict(),
-            user_agent=user_agent,
-            ip_address=ip_address
-        )
+        project_view = ProjectView(**view_dict)
         
         await project_views_collection.insert_one(project_view.dict())
         return {"message": "Project view tracked successfully"}
