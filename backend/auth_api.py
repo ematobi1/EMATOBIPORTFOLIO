@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException, Depends, Request
 from fastapi.security import HTTPBearer
-from models import User, UserCreate, UserLogin, Token
+from models import User, UserResponse, UserCreate, UserLogin, Token
 from auth import create_user, login_user, get_current_user, get_admin_user
 from database import users_collection
 
