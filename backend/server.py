@@ -6,15 +6,15 @@ from pathlib import Path
 import os
 import logging
 
-# Import our modules
+# Load environment variables FIRST
+ROOT_DIR = Path(__file__).parent
+load_dotenv(ROOT_DIR / '.env')
+
+# Import our modules AFTER loading environment
 from database import init_database, close_database
 from auth import create_admin_user
 from portfolio_api import router as portfolio_router
 from auth_api import router as auth_router
-
-# Load environment variables
-ROOT_DIR = Path(__file__).parent
-load_dotenv(ROOT_DIR / '.env')
 
 # Create the main app
 app = FastAPI(
