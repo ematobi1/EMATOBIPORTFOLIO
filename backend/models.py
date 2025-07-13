@@ -18,6 +18,14 @@ class User(BaseModel):
     created_at: datetime = Field(default_factory=datetime.utcnow)
     last_login: Optional[datetime] = None
 
+class UserResponse(BaseModel):
+    id: str
+    email: EmailStr
+    role: UserRole
+    is_active: bool
+    created_at: datetime
+    last_login: Optional[datetime] = None
+
 class UserCreate(BaseModel):
     email: EmailStr
     password: str
