@@ -5,14 +5,18 @@ import { Input } from './ui/input';
 import { Textarea } from './ui/textarea';
 import { Label } from './ui/label';
 import { useToast } from '../hooks/use-toast';
-import { portfolioData, submitContactForm } from '../mock/portfolioData';
+import { portfolioAPI } from '../services/api';
 
 const Contact = () => {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     subject: '',
-    message: ''
+    message: '',
+    phone: '',
+    company: '',
+    project_type: '',
+    budget: ''
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
@@ -29,18 +33,29 @@ const Contact = () => {
     setIsSubmitting(true);
 
     try {
-      const result = await submitContactForm(formData);
-      if (result.success) {
-        toast({
-          title: "Message Sent! 🎉",
-          description: "Thanks for reaching out! I'll get back to you soon.",
-        });
-        setFormData({ name: '', email: '', subject: '', message: '' });
-      }
+      await portfolioAPI.submitContact(formData);
+      
+      toast({
+        title: "Message Sent! 🎉",
+        description: "Thanks for reaching out! I'll get back to you soon.",
+      });
+      
+      setFormData({
+        name: '',
+        email: '',
+        subject: '',
+        message: '',
+        phone: '',
+        company: '',
+        project_type: '',
+        budget: ''
+      });
+      
     } catch (error) {
+      console.error('Contact form error:', error);
       toast({
         title: "Error",
-        description: "Something went wrong. Please try again.",
+        description: error.response?.data?.detail || "Something went wrong. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -52,26 +67,26 @@ const Contact = () => {
     {
       icon: '📧',
       label: 'Email',
-      value: portfolioData.personal.email,
-      href: `mailto:${portfolioData.personal.email}`
+      value: 'emmanuel.tobi@example.com',
+      href: 'mailto:emmanuel.tobi@example.com'
     },
     {
       icon: '📱',
       label: 'Phone',
-      value: portfolioData.personal.phone,
-      href: `tel:${portfolioData.personal.phone}`
+      value: '+1 (555) 123-4567',
+      href: 'tel:+1 (555) 123-4567'
     },
     {
       icon: '📍',
       label: 'Location',
-      value: portfolioData.personal.location,
+      value: 'San Francisco, CA',
       href: '#'
     },
     {
       icon: '💼',
       label: 'LinkedIn',
       value: 'Connect with me',
-      href: portfolioData.personal.linkedin
+      href: 'https://linkedin.com/in/emmanueltobi'
     }
   ];
 
@@ -126,6 +141,31 @@ const Contact = () => {
                   </div>
                 </div>
 
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="phone" className="text-gray-300">Phone</Label>
+                    <Input
+                      id="phone"
+                      name="phone"
+                      value={formData.phone}
+                      onChange={handleInputChange}
+                      className="mt-1 bg-gray-700/50 border-gray-600 text-white focus:border-purple-500"
+                      placeholder="Your phone number"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="company" className="text-gray-300">Company</Label>
+                    <Input
+                      id="company"
+                      name="company"
+                      value={formData.company}
+                      onChange={handleInputChange}
+                      className="mt-1 bg-gray-700/50 border-gray-600 text-white focus:border-purple-500"
+                      placeholder="Your company"
+                    />
+                  </div>
+                </div>
+
                 <div>
                   <Label htmlFor="subject" className="text-gray-300">Subject *</Label>
                   <Input
@@ -137,6 +177,44 @@ const Contact = () => {
                     className="mt-1 bg-gray-700/50 border-gray-600 text-white focus:border-purple-500"
                     placeholder="What's this about?"
                   />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="project_type" className="text-gray-300">Project Type</Label>
+                    <select
+                      id="project_type"
+                      name="project_type"
+                      value={formData.project_type}
+                      onChange={handleInputChange}
+                      className="mt-1 w-full bg-gray-700/50 border-gray-600 text-white focus:border-purple-500 rounded-md px-3 py-2"
+                    >
+                      <option value="">Select project type</option>
+                      <option value="web-app">Web Application</option>
+                      <option value="mobile-app">Mobile App</option>
+                      <option value="website">Website</option>
+                      <option value="api">API Development</option>
+                      <option value="consultation">Consultation</option>
+                      <option value="other">Other</option>
+                    </select>
+                  </div>
+                  <div>
+                    <Label htmlFor="budget" className="text-gray-300">Budget Range</Label>
+                    <select
+                      id="budget"
+                      name="budget"
+                      value={formData.budget}
+                      onChange={handleInputChange}
+                      className="mt-1 w-full bg-gray-700/50 border-gray-600 text-white focus:border-purple-500 rounded-md px-3 py-2"
+                    >
+                      <option value="">Select budget range</option>
+                      <option value="under-5k">Under $5,000</option>
+                      <option value="5k-10k">$5,000 - $10,000</option>
+                      <option value="10k-25k">$10,000 - $25,000</option>
+                      <option value="25k-50k">$25,000 - $50,000</option>
+                      <option value="50k-plus">$50,000+</option>
+                    </select>
+                  </div>
                 </div>
 
                 <div>
@@ -208,15 +286,15 @@ const Contact = () => {
               <h4 className="text-lg font-semibold text-white mb-4">Follow me online</h4>
               <div className="flex space-x-4">
                 {[
-                  { name: 'GitHub', icon: '💻', url: portfolioData.personal.github },
-                  { name: 'LinkedIn', icon: '💼', url: portfolioData.personal.linkedin },
-                  { name: 'Website', icon: '🌐', url: portfolioData.personal.website }
+                  { name: 'GitHub', icon: '💻', url: 'https://github.com/emmanueltobi' },
+                  { name: 'LinkedIn', icon: '💼', url: 'https://linkedin.com/in/emmanueltobi' },
+                  { name: 'Website', icon: '🌐', url: 'https://emmanueltobi.dev' }
                 ].map((social, index) => (
                   <Button
                     key={index}
                     variant="outline"
                     className="border-gray-600 text-gray-300 hover:bg-gray-700 hover:border-gray-500 transition-all duration-300 transform hover:scale-105"
-                    onClick={() => console.log(`Opening ${social.name}: ${social.url}`)}
+                    onClick={() => window.open(social.url, '_blank')}
                   >
                     <span className="mr-2">{social.icon}</span>
                     {social.name}
@@ -224,6 +302,29 @@ const Contact = () => {
                 ))}
               </div>
             </div>
+
+            {/* Newsletter Signup */}
+            <Card className="bg-gradient-to-r from-blue-500/20 to-purple-500/20 border-blue-500/30">
+              <CardContent className="p-6">
+                <h4 className="text-lg font-semibold text-white mb-4">Stay Updated</h4>
+                <p className="text-gray-300 text-sm mb-4">
+                  Subscribe to get notified about new projects and tech insights!
+                </p>
+                <div className="flex space-x-2">
+                  <Input
+                    type="email"
+                    placeholder="Enter your email"
+                    className="flex-1 bg-gray-700/50 border-gray-600 text-white focus:border-purple-500"
+                  />
+                  <Button
+                    onClick={() => toast({ title: "Coming Soon!", description: "Newsletter signup will be available soon." })}
+                    className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
+                  >
+                    Subscribe
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
 
             {/* Availability Status */}
             <Card className="bg-gradient-to-r from-green-500/20 to-emerald-500/20 border-green-500/30">
