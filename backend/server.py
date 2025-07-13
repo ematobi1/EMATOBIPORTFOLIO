@@ -1,60 +1,29 @@
-from fastapi import FastAPI, APIRouter
+from fastapi import FastAPI, APIRouter, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from dotenv import load_dotenv
-from starlette.middleware.cors import CORSMiddleware
-from motor.motor_asyncio import AsyncIOMotorClient
+from pathlib import Path
 import os
 import logging
-from pathlib import Path
-from pydantic import BaseModel, Field
-from typing import List
-import uuid
-from datetime import datetime
 
+# Import our modules
+from database import init_database, close_database
+from auth import create_admin_user
+from portfolio_api import router as portfolio_router
+from auth_api import router as auth_router
 
+# Load environment variables
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
 
-# MongoDB connection
-mongo_url = os.environ['MONGO_URL']
-client = AsyncIOMotorClient(mongo_url)
-db = client[os.environ['DB_NAME']]
+# Create the main app
+app = FastAPI(
+    title="Emmanuel Tobi Portfolio API",
+    description="Backend API for Emmanuel Tobi's developer portfolio",
+    version="1.0.0"
+)
 
-# Create the main app without a prefix
-app = FastAPI()
-
-# Create a router with the /api prefix
-api_router = APIRouter(prefix="/api")
-
-
-# Define Models
-class StatusCheck(BaseModel):
-    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
-    client_name: str
-    timestamp: datetime = Field(default_factory=datetime.utcnow)
-
-class StatusCheckCreate(BaseModel):
-    client_name: str
-
-# Add your routes to the router instead of directly to app
-@api_router.get("/")
-async def root():
-    return {"message": "Hello World"}
-
-@api_router.post("/status", response_model=StatusCheck)
-async def create_status_check(input: StatusCheckCreate):
-    status_dict = input.dict()
-    status_obj = StatusCheck(**status_dict)
-    _ = await db.status_checks.insert_one(status_obj.dict())
-    return status_obj
-
-@api_router.get("/status", response_model=List[StatusCheck])
-async def get_status_checks():
-    status_checks = await db.status_checks.find().to_list(1000)
-    return [StatusCheck(**status_check) for status_check in status_checks]
-
-# Include the router in the main app
-app.include_router(api_router)
-
+# Configure CORS
 app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,
@@ -63,6 +32,64 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Include routers
+app.include_router(portfolio_router)
+app.include_router(auth_router)
+
+# Create a simple health check endpoint
+@app.get("/api/health")
+async def health_check():
+    """Health check endpoint"""
+    return {
+        "status": "healthy",
+        "message": "Emmanuel Tobi Portfolio API is running",
+        "version": "1.0.0"
+    }
+
+# Root endpoint
+@app.get("/api/")
+async def root():
+    """Root endpoint"""
+    return {
+        "message": "Welcome to Emmanuel Tobi's Portfolio API",
+        "version": "1.0.0",
+        "endpoints": {
+            "health": "/api/health",
+            "auth": "/api/auth/",
+            "portfolio": "/api/",
+            "docs": "/docs",
+            "redoc": "/redoc"
+        }
+    }
+
+# Startup event
+@app.on_event("startup")
+async def startup_event():
+    """Initialize database and create admin user on startup"""
+    try:
+        # Initialize database
+        await init_database()
+        
+        # Create admin user
+        await create_admin_user()
+        
+        print("🚀 Emmanuel Tobi Portfolio API started successfully")
+        print("📊 Admin Dashboard: http://localhost:8001/docs")
+        print("🔐 Default Admin: admin@emmanueltobi.dev / admin123")
+        
+    except Exception as e:
+        print(f"❌ Error during startup: {e}")
+
+# Shutdown event
+@app.on_event("shutdown")
+async def shutdown_event():
+    """Close database connection on shutdown"""
+    try:
+        await close_database()
+        print("✅ Database connection closed")
+    except Exception as e:
+        print(f"❌ Error during shutdown: {e}")
+
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
@@ -70,6 +97,16 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-@app.on_event("shutdown")
-async def shutdown_db_client():
-    client.close()
+# Error handlers
+@app.exception_handler(404)
+async def not_found_handler(request, exc):
+    return {"error": "Endpoint not found", "message": "The requested resource was not found"}
+
+@app.exception_handler(500)
+async def internal_error_handler(request, exc):
+    logger.error(f"Internal server error: {exc}")
+    return {"error": "Internal server error", "message": "Something went wrong on our end"}
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8001)
