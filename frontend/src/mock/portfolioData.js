@@ -1,16 +1,16 @@
 // Mock data for the portfolio
 export const portfolioData = {
   personal: {
-    name: "Alex Chen",
+    name: "Emmanuel Tobi",
     title: "Full Stack Developer",
     tagline: "Building the future, one line of code at a time",
     bio: "Passionate full-stack developer with 5+ years of experience creating scalable web applications. I love turning complex problems into simple, beautiful, and intuitive solutions. When I'm not coding, you'll find me exploring new technologies or contributing to open-source projects.",
     location: "San Francisco, CA",
-    email: "alex.chen@example.com",
+    email: "emmanuel.tobi@example.com",
     phone: "+1 (555) 123-4567",
-    linkedin: "https://linkedin.com/in/alexchen",
-    github: "https://github.com/alexchen",
-    website: "https://alexchen.dev"
+    linkedin: "https://linkedin.com/in/emmanueltobi",
+    github: "https://github.com/emmanueltobi",
+    website: "https://emmanueltobi.dev"
   },
   
   skills: {
