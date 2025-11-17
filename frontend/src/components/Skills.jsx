@@ -1,41 +1,81 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from './ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
-import { portfolioData } from '../mock/portfolioData';
+import portfolioAPI from '../services/api';
 
 const Skills = () => {
   const [hoveredSkill, setHoveredSkill] = useState(null);
+  const [skills, setSkills] = useState({ frontend: [], backend: [], tools: [] });
+  const [loading, setLoading] = useState(true);
 
-  const SkillCard = ({ skill, index, category }) => (
-    <Card 
-      className="bg-gray-800/50 border-gray-700 backdrop-blur-sm hover:bg-gray-700/50 transition-all duration-300 transform hover:scale-105"
-      onMouseEnter={() => setHoveredSkill(`${category}-${index}`)}
-      onMouseLeave={() => setHoveredSkill(null)}
-    >
-      <CardContent className="p-6">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center space-x-3">
-            <span className="text-2xl">{skill.icon}</span>
-            <span className="font-semibold text-white">{skill.name}</span>
+  useEffect(() => {
+    const fetchSkills = async () => {
+      try {
+        const data = await portfolioAPI.getSkills();
+        // Group skills by category
+        const grouped = {
+          frontend: data.filter(s => s.category?.toLowerCase() === 'frontend'),
+          backend: data.filter(s => s.category?.toLowerCase() === 'backend'),
+          tools: data.filter(s => ['tools', 'devops', 'tool'].includes(s.category?.toLowerCase()))
+        };
+        setSkills(grouped);
+      } catch (error) {
+        console.error('Error fetching skills:', error);
+        // Keep empty arrays on error
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchSkills();
+  }, []);
+
+  const SkillCard = ({ skill, index, category }) => {
+    const proficiency = skill.proficiency || skill.level || 0;
+    const icon = skill.icon || '⚡';
+
+    return (
+      <Card
+        className="bg-gray-800/50 border-gray-700 backdrop-blur-sm hover:bg-gray-700/50 transition-all duration-300 transform hover:scale-105"
+        onMouseEnter={() => setHoveredSkill(`${category}-${index}`)}
+        onMouseLeave={() => setHoveredSkill(null)}
+      >
+        <CardContent className="p-6">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center space-x-3">
+              <span className="text-2xl">{icon}</span>
+              <span className="font-semibold text-white">{skill.name}</span>
+            </div>
+            <span className="text-sm text-gray-400">{proficiency}%</span>
           </div>
-          <span className="text-sm text-gray-400">{skill.level}%</span>
+
+          {/* Progress Bar */}
+          <div className="w-full bg-gray-700 rounded-full h-2 overflow-hidden">
+            <div
+              className={`h-full bg-gradient-to-r from-purple-500 to-pink-500 rounded-full transition-all duration-1000 ease-out ${
+                hoveredSkill === `${category}-${index}` ? 'animate-pulse' : ''
+              }`}
+              style={{
+                width: hoveredSkill === `${category}-${index}` ? `${proficiency}%` : '0%',
+                transition: 'width 1s ease-out'
+              }}
+            ></div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  };
+
+  if (loading) {
+    return (
+      <section id="skills" className="relative py-20 px-4">
+        <div className="max-w-6xl mx-auto text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500 mx-auto"></div>
+          <p className="mt-4 text-gray-400">Loading skills...</p>
         </div>
-        
-        {/* Progress Bar */}
-        <div className="w-full bg-gray-700 rounded-full h-2 overflow-hidden">
-          <div 
-            className={`h-full bg-gradient-to-r from-purple-500 to-pink-500 rounded-full transition-all duration-1000 ease-out ${
-              hoveredSkill === `${category}-${index}` ? 'animate-pulse' : ''
-            }`}
-            style={{ 
-              width: hoveredSkill === `${category}-${index}` ? `${skill.level}%` : '0%',
-              transition: 'width 1s ease-out'
-            }}
-          ></div>
-        </div>
-      </CardContent>
-    </Card>
-  );
+      </section>
+    );
+  }
 
   return (
     <section id="skills" className="relative py-20 px-4">
@@ -81,9 +121,13 @@ const Skills = () => {
               <p className="text-gray-400">Creating beautiful, responsive, and interactive user experiences</p>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {portfolioData.skills.frontend.map((skill, index) => (
-                <SkillCard key={index} skill={skill} index={index} category="frontend" />
-              ))}
+              {skills.frontend.length > 0 ? (
+                skills.frontend.map((skill, index) => (
+                  <SkillCard key={skill._id || index} skill={skill} index={index} category="frontend" />
+                ))
+              ) : (
+                <p className="col-span-3 text-center text-gray-400">No frontend skills added yet</p>
+              )}
             </div>
           </TabsContent>
 
@@ -93,9 +137,13 @@ const Skills = () => {
               <p className="text-gray-400">Building robust, scalable server-side applications and APIs</p>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {portfolioData.skills.backend.map((skill, index) => (
-                <SkillCard key={index} skill={skill} index={index} category="backend" />
-              ))}
+              {skills.backend.length > 0 ? (
+                skills.backend.map((skill, index) => (
+                  <SkillCard key={skill._id || index} skill={skill} index={index} category="backend" />
+                ))
+              ) : (
+                <p className="col-span-3 text-center text-gray-400">No backend skills added yet</p>
+              )}
             </div>
           </TabsContent>
 
@@ -105,9 +153,13 @@ const Skills = () => {
               <p className="text-gray-400">Modern development tools and cloud infrastructure management</p>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {portfolioData.skills.tools.map((skill, index) => (
-                <SkillCard key={index} skill={skill} index={index} category="tools" />
-              ))}
+              {skills.tools.length > 0 ? (
+                skills.tools.map((skill, index) => (
+                  <SkillCard key={skill._id || index} skill={skill} index={index} category="tools" />
+                ))
+              ) : (
+                <p className="col-span-3 text-center text-gray-400">No tools skills added yet</p>
+              )}
             </div>
           </TabsContent>
         </Tabs>
