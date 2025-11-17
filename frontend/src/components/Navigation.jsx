@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from './ui/button';
+import { useTheme } from '../contexts/ThemeContext';
 import { portfolioData } from '../mock/portfolioData';
+import { Sun, Moon } from 'lucide-react';
 
 const Navigation = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [activeSection, setActiveSection] = useState('home');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { theme, toggleTheme } = useTheme();
 
   const navItems = [
     { id: 'home', label: 'Home', href: '#' },
@@ -13,6 +16,7 @@ const Navigation = () => {
     { id: 'skills', label: 'Skills', href: '#skills' },
     { id: 'projects', label: 'Projects', href: '#projects' },
     { id: 'experience', label: 'Experience', href: '#experience' },
+    { id: 'testimonials', label: 'Testimonials', href: '#testimonials' },
     { id: 'contact', label: 'Contact', href: '#contact' }
   ];
 
@@ -96,8 +100,24 @@ const Navigation = () => {
             ))}
           </div>
 
-          {/* CTA Button */}
-          <div className="hidden md:block">
+          {/* Right Side Actions */}
+          <div className="hidden md:flex items-center space-x-3">
+            {/* Theme Toggle */}
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={toggleTheme}
+              className="text-gray-300 hover:text-white hover:bg-gray-800/50 transition-all duration-200"
+              aria-label="Toggle theme"
+            >
+              {theme === 'dark' ? (
+                <Sun className="h-5 w-5" />
+              ) : (
+                <Moon className="h-5 w-5" />
+              )}
+            </Button>
+
+            {/* CTA Button */}
             <Button
               onClick={() => scrollToSection('contact')}
               className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-medium px-6 py-2 rounded-lg shadow-lg hover:shadow-purple-500/25 transition-all duration-300 transform hover:scale-105"
@@ -146,7 +166,24 @@ const Navigation = () => {
                   {item.label}
                 </Button>
               ))}
-              <div className="pt-2 border-t border-gray-700">
+              <div className="pt-2 border-t border-gray-700 space-y-2">
+                <Button
+                  variant="ghost"
+                  onClick={toggleTheme}
+                  className="w-full justify-start px-4 py-3 text-gray-300 hover:text-white hover:bg-gray-800/50"
+                >
+                  {theme === 'dark' ? (
+                    <>
+                      <Sun className="h-4 w-4 mr-2" />
+                      Light Mode
+                    </>
+                  ) : (
+                    <>
+                      <Moon className="h-4 w-4 mr-2" />
+                      Dark Mode
+                    </>
+                  )}
+                </Button>
                 <Button
                   onClick={() => scrollToSection('contact')}
                   className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-medium py-3 rounded-lg"

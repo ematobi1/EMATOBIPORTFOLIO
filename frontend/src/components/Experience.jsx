@@ -1,12 +1,58 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from './ui/card';
 import { Badge } from './ui/badge';
-import { portfolioData } from '../mock/portfolioData';
+import portfolioAPI from '../services/api';
 
 const Experience = () => {
   const [selectedExperience, setSelectedExperience] = useState(0);
+  const [experience, setExperience] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const experience = portfolioData.experience;
+  useEffect(() => {
+    const fetchExperience = async () => {
+      try {
+        const data = await portfolioAPI.getExperience();
+        setExperience(data);
+      } catch (error) {
+        console.error('Error fetching experience:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchExperience();
+  }, []);
+
+  if (loading) {
+    return (
+      <section id="experience" className="relative py-20 px-4">
+        <div className="max-w-6xl mx-auto text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500 mx-auto"></div>
+          <p className="mt-4 text-gray-400">Loading experience...</p>
+        </div>
+      </section>
+    );
+  }
+
+  if (experience.length === 0) {
+    return (
+      <section id="experience" className="relative py-20 px-4">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl md:text-5xl font-bold mb-6">
+              <span className="bg-gradient-to-r from-cyan-400 to-purple-500 bg-clip-text text-transparent">
+                Work Experience
+              </span>
+            </h2>
+            <div className="w-24 h-1 bg-gradient-to-r from-purple-500 to-pink-500 mx-auto rounded-full mb-6"></div>
+          </div>
+          <div className="text-center py-12">
+            <p className="text-gray-400 text-lg">No experience data available</p>
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section id="experience" className="relative py-20 px-4">
@@ -28,31 +74,38 @@ const Experience = () => {
           {/* Timeline Navigation */}
           <div className="lg:col-span-1">
             <div className="space-y-4">
-              {experience.map((exp, index) => (
-                <Card 
-                  key={exp.id}
-                  className={`cursor-pointer transition-all duration-300 transform hover:scale-105 ${
-                    selectedExperience === index 
-                      ? 'bg-gradient-to-r from-purple-600/20 to-blue-600/20 border-purple-500/50' 
-                      : 'bg-gray-800/50 border-gray-700 hover:bg-gray-700/50'
-                  }`}
-                  onClick={() => setSelectedExperience(index)}
-                >
-                  <CardContent className="p-4">
-                    <div className="flex items-center space-x-3">
-                      <div className={`w-3 h-3 rounded-full ${
-                        selectedExperience === index 
-                          ? 'bg-gradient-to-r from-purple-500 to-blue-500' 
-                          : 'bg-gray-600'
-                      }`}></div>
-                      <div className="flex-1">
-                        <h3 className="font-semibold text-white text-sm">{exp.company}</h3>
-                        <p className="text-gray-400 text-xs">{exp.duration}</p>
+              {experience.map((exp, index) => {
+                const expId = exp._id || exp.id;
+                return (
+                  <Card
+                    key={expId}
+                    className={`cursor-pointer transition-all duration-300 transform hover:scale-105 ${
+                      selectedExperience === index
+                        ? 'bg-gradient-to-r from-purple-600/20 to-blue-600/20 border-purple-500/50'
+                        : 'bg-gray-800/50 border-gray-700 hover:bg-gray-700/50'
+                    }`}
+                    onClick={() => setSelectedExperience(index)}
+                  >
+                    <CardContent className="p-4">
+                      <div className="flex items-center space-x-3">
+                        <div
+                          className={`w-3 h-3 rounded-full ${
+                            selectedExperience === index
+                              ? 'bg-gradient-to-r from-purple-500 to-blue-500'
+                              : 'bg-gray-600'
+                          }`}
+                        ></div>
+                        <div className="flex-1">
+                          <h3 className="font-semibold text-white text-sm">{exp.company}</h3>
+                          <p className="text-gray-400 text-xs">
+                            {exp.duration || `${exp.start_date} - ${exp.end_date || 'Present'}`}
+                          </p>
+                        </div>
                       </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+                    </CardContent>
+                  </Card>
+                );
+              })}
             </div>
           </div>
 
@@ -83,32 +136,36 @@ const Experience = () => {
                     </p>
 
                     {/* Key Achievements */}
-                    <div>
-                      <h4 className="text-lg font-semibold text-white mb-4">Key Achievements</h4>
-                      <ul className="space-y-3">
-                        {experience[selectedExperience].achievements.map((achievement, index) => (
-                          <li key={index} className="flex items-start space-x-3">
-                            <div className="w-2 h-2 bg-gradient-to-r from-green-400 to-blue-500 rounded-full mt-2 flex-shrink-0"></div>
-                            <span className="text-gray-300">{achievement}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
+                    {experience[selectedExperience].achievements && experience[selectedExperience].achievements.length > 0 && (
+                      <div>
+                        <h4 className="text-lg font-semibold text-white mb-4">Key Achievements</h4>
+                        <ul className="space-y-3">
+                          {experience[selectedExperience].achievements.map((achievement, index) => (
+                            <li key={index} className="flex items-start space-x-3">
+                              <div className="w-2 h-2 bg-gradient-to-r from-green-400 to-blue-500 rounded-full mt-2 flex-shrink-0"></div>
+                              <span className="text-gray-300">{achievement}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
 
                     {/* Technologies */}
-                    <div>
-                      <h4 className="text-lg font-semibold text-white mb-4">Technologies Used</h4>
-                      <div className="flex flex-wrap gap-2">
-                        {experience[selectedExperience].tech.map((tech, index) => (
-                          <Badge 
-                            key={index}
-                            className="bg-gradient-to-r from-purple-600/20 to-blue-600/20 text-purple-300 border border-purple-500/30"
-                          >
-                            {tech}
-                          </Badge>
-                        ))}
+                    {experience[selectedExperience].technologies && experience[selectedExperience].technologies.length > 0 && (
+                      <div>
+                        <h4 className="text-lg font-semibold text-white mb-4">Technologies Used</h4>
+                        <div className="flex flex-wrap gap-2">
+                          {(experience[selectedExperience].technologies || experience[selectedExperience].tech || []).map((tech, index) => (
+                            <Badge
+                              key={index}
+                              className="bg-gradient-to-r from-purple-600/20 to-blue-600/20 text-purple-300 border border-purple-500/30"
+                            >
+                              {tech}
+                            </Badge>
+                          ))}
+                        </div>
                       </div>
-                    </div>
+                    )}
                   </div>
                 )}
               </CardContent>
@@ -130,12 +187,16 @@ const Experience = () => {
                         {exp.company.charAt(0)}
                       </div>
                       <div>
-                        <h4 className="font-semibold text-white">{exp.position}</h4>
+                        <h4 className="font-semibold text-white">{exp.position || exp.title}</h4>
                         <p className="text-sm text-gray-400">{exp.company}</p>
                       </div>
                     </div>
-                    <p className="text-xs text-purple-400 mb-2">{exp.duration}</p>
-                    <p className="text-sm text-gray-300">{exp.description.substring(0, 100)}...</p>
+                    <p className="text-xs text-purple-400 mb-2">
+                      {exp.duration || `${exp.start_date} - ${exp.end_date || 'Present'}`}
+                    </p>
+                    <p className="text-sm text-gray-300">
+                      {exp.description ? exp.description.substring(0, 100) + '...' : 'No description available'}
+                    </p>
                   </CardContent>
                 </Card>
                 
