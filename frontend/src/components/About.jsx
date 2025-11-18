@@ -1,14 +1,51 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from './ui/card';
-import { portfolioData } from '../mock/portfolioData';
+import portfolioAPI from '../services/api';
 
 const About = () => {
+  const [personalInfo, setPersonalInfo] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchPersonalInfo = async () => {
+      try {
+        const data = await portfolioAPI.getPersonalInfo();
+        setPersonalInfo(data);
+      } catch (error) {
+        console.error('Error fetching personal info:', error);
+        // Set default values on error
+        setPersonalInfo({
+          name: 'Emmanuel Tobi',
+          title: 'Full Stack Developer',
+          bio: 'Passionate developer focused on creating innovative solutions.',
+          location: 'Remote',
+          yearsOfExperience: 5
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPersonalInfo();
+  }, []);
+
   const stats = [
-    { label: 'Years Experience', value: '5+', icon: '💼' },
+    { label: 'Years Experience', value: `${personalInfo?.yearsOfExperience || 5}+`, icon: '💼' },
     { label: 'Projects Completed', value: '50+', icon: '🚀' },
     { label: 'Happy Clients', value: '30+', icon: '😊' },
     { label: 'Code Commits', value: '2K+', icon: '💻' }
   ];
+
+  if (loading) {
+    return (
+      <section id="about" className="relative py-20 px-4">
+        <div className="max-w-6xl mx-auto text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500 mx-auto"></div>
+          <p className="mt-4 text-gray-400">Loading...</p>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section id="about" className="relative py-20 px-4">
@@ -31,7 +68,7 @@ const About = () => {
                 Passionate Developer & Problem Solver
               </h3>
               <p className="text-gray-300 text-lg leading-relaxed mb-6">
-                {portfolioData.personal.bio}
+                {personalInfo?.bio || 'Passionate developer focused on creating innovative solutions.'}
               </p>
             </div>
 
@@ -75,8 +112,8 @@ const About = () => {
               </div>
               <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
               <div className="absolute bottom-4 left-4 right-4">
-                <h4 className="text-white font-semibold text-lg">{portfolioData.personal.name}</h4>
-                <p className="text-gray-300">{portfolioData.personal.location}</p>
+                <h4 className="text-white font-semibold text-lg">{personalInfo?.name || 'Emmanuel Tobi'}</h4>
+                <p className="text-gray-300">{personalInfo?.location || 'Remote'}</p>
               </div>
             </div>
 

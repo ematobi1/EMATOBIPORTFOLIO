@@ -1,55 +1,95 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from './ui/card';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
-import { portfolioData } from '../mock/portfolioData';
-import { analyticsHelper } from '../services/api';
+import portfolioAPI, { analyticsHelper } from '../services/api';
 
 const Projects = () => {
   const [filter, setFilter] = useState('all');
   const [hoveredProject, setHoveredProject] = useState(null);
+  const [allProjects, setAllProjects] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const allProjects = portfolioData.projects;
+  useEffect(() => {
+    const fetchProjects = async () => {
+      try {
+        const data = await portfolioAPI.getProjects();
+        setAllProjects(data);
+      } catch (error) {
+        console.error('Error fetching projects:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProjects();
+  }, []);
+
   const featuredProjects = allProjects.filter(project => project.featured);
-  
   const displayProjects = filter === 'featured' ? featuredProjects : allProjects;
 
   const handleViewProject = async (project) => {
     try {
+      const projectId = project._id || project.id;
       // Track demo click
-      await analyticsHelper.trackProjectInteraction(project.id.toString(), 'demo_click');
-      
-      // For now, show alert (would normally open demo)
-      alert(`Opening ${project.title} - Demo: ${project.demo}`);
+      await analyticsHelper.trackProjectInteraction(projectId.toString(), 'demo_click');
+
+      // Open demo link in new tab
+      if (project.demo_link || project.demo) {
+        window.open(project.demo_link || project.demo, '_blank', 'noopener,noreferrer');
+      } else {
+        alert(`No demo link available for ${project.title}`);
+      }
     } catch (error) {
       console.error('Error tracking project view:', error);
-      alert(`Opening ${project.title} - Demo: ${project.demo}`);
+      if (project.demo_link || project.demo) {
+        window.open(project.demo_link || project.demo, '_blank', 'noopener,noreferrer');
+      }
     }
   };
 
   const handleViewCode = async (project) => {
     try {
+      const projectId = project._id || project.id;
       // Track GitHub click
-      await analyticsHelper.trackProjectInteraction(project.id.toString(), 'github_click');
-      
-      // For now, show alert (would normally open GitHub)
-      alert(`Opening GitHub repository for ${project.title}`);
+      await analyticsHelper.trackProjectInteraction(projectId.toString(), 'github_click');
+
+      // Open GitHub link in new tab
+      if (project.github_link || project.github) {
+        window.open(project.github_link || project.github, '_blank', 'noopener,noreferrer');
+      } else {
+        alert(`No GitHub repository available for ${project.title}`);
+      }
     } catch (error) {
       console.error('Error tracking GitHub click:', error);
-      alert(`Opening GitHub repository for ${project.title}`);
+      if (project.github_link || project.github) {
+        window.open(project.github_link || project.github, '_blank', 'noopener,noreferrer');
+      }
     }
   };
 
   const handleProjectHover = async (project) => {
-    setHoveredProject(project.id);
-    
+    const projectId = project._id || project.id;
+    setHoveredProject(projectId);
+
     try {
       // Track project view
-      await analyticsHelper.trackProjectInteraction(project.id.toString(), 'view');
+      await analyticsHelper.trackProjectInteraction(projectId.toString(), 'view');
     } catch (error) {
       console.error('Error tracking project hover:', error);
     }
   };
+
+  if (loading) {
+    return (
+      <section id="projects" className="relative py-20 px-4">
+        <div className="max-w-6xl mx-auto text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500 mx-auto"></div>
+          <p className="mt-4 text-gray-400">Loading projects...</p>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section id="projects" className="relative py-20 px-4">
@@ -95,92 +135,116 @@ const Projects = () => {
 
         {/* Projects Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {displayProjects.map((project, index) => (
-            <Card 
-              key={project.id}
-              className="bg-gray-800/50 border-gray-700 backdrop-blur-sm overflow-hidden group hover:bg-gray-700/50 transition-all duration-300 transform hover:scale-105"
-              onMouseEnter={() => handleProjectHover(project)}
-              onMouseLeave={() => setHoveredProject(null)}
-            >
-              {/* Project Image */}
-              <div className="relative overflow-hidden h-48 bg-gradient-to-br from-gray-700 to-gray-800">
-                <img 
-                  src={project.image} 
-                  alt={project.title}
-                  className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent"></div>
-                
-                {/* Featured Badge */}
-                {project.featured && (
-                  <div className="absolute top-4 right-4">
-                    <Badge className="bg-gradient-to-r from-yellow-500 to-orange-500 text-white">
-                      ⭐ Featured
-                    </Badge>
-                  </div>
-                )}
+          {displayProjects.length > 0 ? (
+            displayProjects.map((project, index) => {
+              const projectId = project._id || project.id;
+              const technologies = project.technologies || project.tech || [];
+              const imageUrl = project.image_url || project.image || '/placeholder-project.jpg';
 
-                {/* Hover Overlay */}
-                <div className={`absolute inset-0 bg-black/80 flex items-center justify-center space-x-4 transition-opacity duration-300 ${
-                  hoveredProject === project.id ? 'opacity-100' : 'opacity-0'
-                }`}>
-                  <Button
-                    onClick={() => handleViewProject(project)}
-                    className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
-                  >
-                    Live Demo
-                  </Button>
-                  <Button
-                    onClick={() => handleViewCode(project)}
-                    variant="outline"
-                    className="border-gray-400 text-gray-200 hover:bg-gray-700"
-                  >
-                    View Code
-                  </Button>
-                </div>
-              </div>
+              return (
+                <Card
+                  key={projectId}
+                  className="bg-gray-800/50 border-gray-700 backdrop-blur-sm overflow-hidden group hover:bg-gray-700/50 transition-all duration-300 transform hover:scale-105"
+                  onMouseEnter={() => handleProjectHover(project)}
+                  onMouseLeave={() => setHoveredProject(null)}
+                >
+                  {/* Project Image */}
+                  <div className="relative overflow-hidden h-48 bg-gradient-to-br from-gray-700 to-gray-800">
+                    <img
+                      src={imageUrl}
+                      alt={project.title}
+                      className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+                      onError={(e) => {
+                        e.target.src = 'https://via.placeholder.com/400x300/1f2937/ffffff?text=' + encodeURIComponent(project.title);
+                      }}
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent"></div>
 
-              <CardContent className="p-6">
-                <h3 className="text-xl font-semibold text-white mb-3">{project.title}</h3>
-                <p className="text-gray-400 mb-4 line-clamp-3">{project.description}</p>
-                
-                {/* Tech Stack */}
-                <div className="flex flex-wrap gap-2 mb-4">
-                  {project.tech.slice(0, 4).map((tech, techIndex) => (
-                    <Badge 
-                      key={techIndex}
-                      variant="secondary" 
-                      className="bg-gray-700 text-gray-300 text-xs"
+                    {/* Featured Badge */}
+                    {project.featured && (
+                      <div className="absolute top-4 right-4">
+                        <Badge className="bg-gradient-to-r from-yellow-500 to-orange-500 text-white">
+                          ⭐ Featured
+                        </Badge>
+                      </div>
+                    )}
+
+                    {/* Hover Overlay */}
+                    <div
+                      className={`absolute inset-0 bg-black/80 flex items-center justify-center space-x-4 transition-opacity duration-300 ${
+                        hoveredProject === projectId ? 'opacity-100' : 'opacity-0'
+                      }`}
                     >
-                      {tech}
-                    </Badge>
-                  ))}
-                  {project.tech.length > 4 && (
-                    <Badge variant="secondary" className="bg-gray-700 text-gray-300 text-xs">
-                      +{project.tech.length - 4} more
-                    </Badge>
-                  )}
-                </div>
+                      <Button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleViewProject(project);
+                        }}
+                        className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
+                      >
+                        Live Demo
+                      </Button>
+                      <Button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleViewCode(project);
+                        }}
+                        variant="outline"
+                        className="border-gray-400 text-gray-200 hover:bg-gray-700"
+                      >
+                        View Code
+                      </Button>
+                    </div>
+                  </div>
 
-                {/* Action Buttons */}
-                <div className="flex space-x-3">
-                  <Button
-                    onClick={() => handleViewProject(project)}
-                    className="flex-1 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-sm"
-                  >
-                    Live Demo
-                  </Button>
-                  <Button
-                    onClick={() => handleViewCode(project)}
-                    variant="outline"
-                    className="border-gray-600 text-gray-300 hover:bg-gray-700 text-sm"
-                  >
-                    Code
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+                  <CardContent className="p-6">
+                    <h3 className="text-xl font-semibold text-white mb-3">{project.title}</h3>
+                    <p className="text-gray-400 mb-4 line-clamp-3">{project.description}</p>
+
+                    {/* Tech Stack */}
+                    <div className="flex flex-wrap gap-2 mb-4">
+                      {technologies.slice(0, 4).map((tech, techIndex) => (
+                        <Badge
+                          key={techIndex}
+                          variant="secondary"
+                          className="bg-gray-700 text-gray-300 text-xs"
+                        >
+                          {tech}
+                        </Badge>
+                      ))}
+                      {technologies.length > 4 && (
+                        <Badge variant="secondary" className="bg-gray-700 text-gray-300 text-xs">
+                          +{technologies.length - 4} more
+                        </Badge>
+                      )}
+                    </div>
+
+                    {/* Action Buttons */}
+                    <div className="flex space-x-3">
+                      <Button
+                        onClick={() => handleViewProject(project)}
+                        className="flex-1 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-sm"
+                      >
+                        Live Demo
+                      </Button>
+                      <Button
+                        onClick={() => handleViewCode(project)}
+                        variant="outline"
+                        className="border-gray-600 text-gray-300 hover:bg-gray-700 text-sm"
+                      >
+                        Code
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })
+          ) : (
+            <div className="col-span-full text-center py-12">
+              <p className="text-gray-400 text-lg">No projects to display</p>
+              <p className="text-gray-500 text-sm mt-2">Check back soon for updates!</p>
+            </div>
+          )}
         </div>
 
         {/* View More Projects */}

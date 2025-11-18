@@ -195,7 +195,12 @@ export const portfolioAPI = {
     const response = await api.get('/analytics/dashboard');
     return response.data;
   },
-  
+
+  getAnalyticsDashboard: async () => {
+    const response = await api.get('/analytics/dashboard');
+    return response.data;
+  },
+
   getContactAnalytics: async () => {
     const response = await api.get('/analytics/contacts');
     return response.data;
