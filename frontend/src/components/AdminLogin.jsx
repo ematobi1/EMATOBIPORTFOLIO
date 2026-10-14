@@ -79,7 +79,7 @@ const AdminLogin = () => {
                 value={formData.email}
                 onChange={handleInputChange}
                 required
-                placeholder="admin@emmanueltobi.dev"
+                placeholder="you@example.com"
                 className="bg-gray-700 border-gray-600 text-white focus:border-purple-500"
               />
             </div>
@@ -115,12 +115,7 @@ const AdminLogin = () => {
               )}
             </Button>
           </form>
-          
-          <div className="mt-6 text-center text-sm text-gray-400">
-            <p>Default credentials:</p>
-            <p>Email: admin@emmanueltobi.dev</p>
-            <p>Password: admin123</p>
-          </div>
+
         </CardContent>
       </Card>
     </div>

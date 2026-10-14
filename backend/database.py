@@ -43,11 +43,11 @@ async def init_database():
                 "title": "Full Stack Developer",
                 "tagline": "Building the future, one line of code at a time",
                 "bio": "Passionate full-stack developer with 5+ years of experience creating scalable web applications. I love turning complex problems into simple, beautiful, and intuitive solutions. When I'm not coding, you'll find me exploring new technologies or contributing to open-source projects.",
-                "location": "San Francisco, CA",
-                "email": "emmanuel.tobi@example.com",
-                "phone": "+1 (555) 123-4567",
-                "linkedin": "https://linkedin.com/in/emmanueltobi",
-                "github": "https://github.com/emmanueltobi",
+                "location": "",
+                "email": "emma.tobi1@gmail.com",
+                "phone": "",
+                "linkedin": "https://www.linkedin.com/in/emmanuel-t-52a040118",
+                "github": "https://github.com/ematobi1",
                 "website": "https://emmanueltobi.dev"
             }
             await personal_info_collection.insert_one(default_personal_info)

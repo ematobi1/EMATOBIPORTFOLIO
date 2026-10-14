@@ -17,7 +17,7 @@ class EmailService:
         self.smtp_username = os.environ.get('SMTP_USERNAME', '')
         self.smtp_password = os.environ.get('SMTP_PASSWORD', '')
         self.from_email = os.environ.get('FROM_EMAIL', 'noreply@emmanueltobi.dev')
-        self.admin_email = os.environ.get('ADMIN_EMAIL', 'emmanuel.tobi@example.com')
+        self.admin_email = os.environ.get('ADMIN_EMAIL', 'emma.tobi1@gmail.com')
     
     async def send_email(self, to_email: str, subject: str, body: str, html_body: Optional[str] = None) -> bool:
         """Send email using SMTP"""
@@ -145,8 +145,8 @@ I'll review your message and get back to you as soon as possible, usually within
 
 In the meantime, feel free to:
 - Check out my latest projects: https://emmanueltobi.dev/#projects
-- Connect with me on LinkedIn: https://linkedin.com/in/emmanueltobi
-- Follow my work on GitHub: https://github.com/emmanueltobi
+- Connect with me on LinkedIn: https://www.linkedin.com/in/emmanuel-t-52a040118
+- Follow my work on GitHub: https://github.com/ematobi1
 
 Best regards,
 Emmanuel Tobi
@@ -187,8 +187,8 @@ This is an automated response. Please don't reply to this email.
         
         <div class="links">
             <a href="https://emmanueltobi.dev/#projects" class="link-button">View My Projects</a>
-            <a href="https://linkedin.com/in/emmanueltobi" class="link-button">Connect on LinkedIn</a>
-            <a href="https://github.com/emmanueltobi" class="link-button">Follow on GitHub</a>
+            <a href="https://www.linkedin.com/in/emmanuel-t-52a040118" class="link-button">Connect on LinkedIn</a>
+            <a href="https://github.com/ematobi1" class="link-button">Follow on GitHub</a>
         </div>
         
         <p>Best regards,<br>

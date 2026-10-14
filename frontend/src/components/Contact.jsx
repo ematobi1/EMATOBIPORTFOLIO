@@ -67,26 +67,14 @@ const Contact = () => {
     {
       icon: '📧',
       label: 'Email',
-      value: 'emmanuel.tobi@example.com',
-      href: 'mailto:emmanuel.tobi@example.com'
-    },
-    {
-      icon: '📱',
-      label: 'Phone',
-      value: '+1 (555) 123-4567',
-      href: 'tel:+1 (555) 123-4567'
-    },
-    {
-      icon: '📍',
-      label: 'Location',
-      value: 'San Francisco, CA',
-      href: '#'
+      value: 'emma.tobi1@gmail.com',
+      href: 'mailto:emma.tobi1@gmail.com'
     },
     {
       icon: '💼',
       label: 'LinkedIn',
       value: 'Connect with me',
-      href: 'https://linkedin.com/in/emmanueltobi'
+      href: 'https://www.linkedin.com/in/emmanuel-t-52a040118'
     }
   ];
 
@@ -286,8 +274,8 @@ const Contact = () => {
               <h4 className="text-lg font-semibold text-white mb-4">Follow me online</h4>
               <div className="flex space-x-4">
                 {[
-                  { name: 'GitHub', icon: '💻', url: 'https://github.com/emmanueltobi' },
-                  { name: 'LinkedIn', icon: '💼', url: 'https://linkedin.com/in/emmanueltobi' },
+                  { name: 'GitHub', icon: '💻', url: 'https://github.com/ematobi1' },
+                  { name: 'LinkedIn', icon: '💼', url: 'https://www.linkedin.com/in/emmanuel-t-52a040118' },
                   { name: 'Website', icon: '🌐', url: 'https://emmanueltobi.dev' }
                 ].map((social, index) => (
                   <Button

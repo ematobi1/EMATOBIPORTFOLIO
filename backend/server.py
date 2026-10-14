@@ -75,8 +75,7 @@ async def startup_event():
         await create_admin_user()
         
         print("🚀 Emmanuel Tobi Portfolio API started successfully")
-        print("📊 Admin Dashboard: http://localhost:8001/docs")
-        print("🔐 Default Admin: admin@emmanueltobi.dev / admin123")
+        print("📊 API docs: http://localhost:8001/docs")
         
     except Exception as e:
         print(f"❌ Error during startup: {e}")

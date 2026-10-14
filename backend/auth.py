@@ -7,9 +7,17 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from models import User, UserCreate, UserLogin, Token
 from database import users_collection
 import os
+import secrets
+import logging
+
+logger = logging.getLogger(__name__)
 
 # JWT Configuration
-SECRET_KEY = os.environ.get('JWT_SECRET_KEY', 'your-secret-key-here-change-in-production')
+SECRET_KEY = os.environ.get('JWT_SECRET_KEY')
+if not SECRET_KEY:
+    # Never fall back to a well-known key; tokens just won't survive a restart.
+    SECRET_KEY = secrets.token_urlsafe(48)
+    logger.warning("JWT_SECRET_KEY is not set; using a random per-process key")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
@@ -161,18 +169,18 @@ async def login_user(login_data: UserLogin) -> Token:
     return Token(access_token=access_token)
 
 async def create_admin_user():
-    """Create default admin user if not exists"""
+    """Create the admin user from ADMIN_EMAIL / ADMIN_PASSWORD if none exists"""
     try:
         existing_admin = await users_collection.find_one({"role": "admin"})
-        if not existing_admin:
-            admin_user = UserCreate(
-                email="admin@emmanueltobi.dev",
-                password="admin123",  # Change this in production
-                role="admin"
-            )
-            await create_user(admin_user)
-            print("✅ Default admin user created: admin@emmanueltobi.dev / admin123")
-        else:
+        if existing_admin:
             print("✅ Admin user already exists")
+            return
+        email = os.environ.get("ADMIN_EMAIL")
+        password = os.environ.get("ADMIN_PASSWORD")
+        if not email or not password:
+            print("⚠️  No admin user: set ADMIN_EMAIL and ADMIN_PASSWORD to create one")
+            return
+        await create_user(UserCreate(email=email, password=password, role="admin"))
+        print(f"✅ Admin user created: {email}")
     except Exception as e:
         print(f"❌ Error creating admin user: {e}")
